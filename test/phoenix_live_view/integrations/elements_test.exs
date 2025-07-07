@@ -608,6 +608,24 @@ defmodule Phoenix.LiveView.ElementsTest do
       assert conn.request_path == "/not_found"
       assert conn.params == %{"baz" => "bat"}
     end
+
+    test "includes the phx-value-* key/value pairs in the payload", %{live: view, conn: conn} do
+      view |> element("#trigger-form-default") |> render_submit()
+
+      conn = view |> form("#trigger-form-phx-value") |> follow_trigger_action(conn)
+      assert conn.method == "GET"
+      assert conn.request_path == "/elements"
+      assert conn.params == %{"key" => "value", "foo" => "bar"}
+    end
+
+    test "includes the hidden key/value pairs in the payload", %{live: view, conn: conn} do
+      view |> element("#trigger-form-default") |> render_submit()
+
+      conn = view |> form("#trigger-form-hidden-values") |> follow_trigger_action(conn)
+      assert conn.method == "GET"
+      assert conn.request_path == "/elements"
+      assert conn.params == %{"key" => "not_visible"}
+    end
   end
 
   describe "submit_form" do

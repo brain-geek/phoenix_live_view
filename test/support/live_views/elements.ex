@@ -251,6 +251,20 @@ defmodule Phoenix.LiveViewTest.Support.ElementsLive do
     >
     </form>
 
+    <form
+      id="trigger-form-phx-value"
+      phx-trigger-action={@trigger_action}
+      phx-value-key="action_value"
+    >
+    </form>
+
+    <form
+      id="trigger-form-hidden-values"
+      phx-trigger-action={@trigger_action}
+    >
+      <input name="key" type="hidden" value="not_visible" />
+    </form>
+
     <form id="named" phx-submit="form-submit-named">
       <input name="child" />
     </form>
