@@ -242,6 +242,17 @@ defmodule Phoenix.LiveViewTest.Support.ElementsLive do
 
     <form id="submit-form-default" action="/not_found"></form>
 
+    <form id="submit-form-value" action="/elements">
+      <input name="key" type="text" value="visible_value" />
+      <input name="foo" type="hidden" value="hidden_value" />
+    </form>
+
+    <form id="submit-form-nondirect-value" action="/elements">
+      <sidebar>
+        <input name="foo" type="hidden" value="nested_value" />
+      </sidebar>
+    </form>
+
     <form
       id="trigger-form-value"
       action="/not_found"
@@ -249,6 +260,10 @@ defmodule Phoenix.LiveViewTest.Support.ElementsLive do
       phx-submit="form-submit-trigger"
       phx-trigger-action={@trigger_action}
     >
+    </form>
+
+    <form id="trigger-form-hidden-values" phx-trigger-action={@trigger_action}>
+      <input name="key" type="hidden" value="not_visible" />
     </form>
 
     <form id="named" phx-submit="form-submit-named">
