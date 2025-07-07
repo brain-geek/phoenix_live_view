@@ -1894,20 +1894,53 @@ defmodule Phoenix.LiveViewTest do
 
   def __render_trigger_submit__(%Element{} = form, name, required_attr, error_msg) do
     case render_tree(form) do
-      {"form", attrs, _child_nodes} ->
+      {"form", attrs, child_nodes} ->
         if not List.keymember?(attrs, required_attr, 0) do
           raise ArgumentError, error_msg <> ", got: #{inspect(attrs)}"
         end
 
+        input_values = get_form_keys({"form", attrs, child_nodes}) |> Map.new()
+
         {"action", path} = List.keyfind(attrs, "action", 0) || {"action", call(form, :url)}
         {"method", method} = List.keyfind(attrs, "method", 0) || {"method", "get"}
-        {method, path, form.form_data || %{}}
+
+        form_data = Map.merge(input_values, form.form_data || %{})
+
+        {method, path, form_data}
 
       {tag, _, _} ->
         raise ArgumentError,
               "could not #{name} because given element did not return a form, " <>
                 "got #{inspect(tag)} instead"
     end
+  end
+
+  defp extract_inputs({"input", _, _} = input) do
+    [input]
+  end
+
+  defp extract_inputs({_, _, []}) do
+    []
+  end
+
+  defp extract_inputs({_, _, children}) do
+    children |> Enum.flat_map(&extract_inputs/1)
+  end
+
+  defp extract_inputs(_), do: []
+
+  defp get_form_keys(elem) do
+    elem
+    |> extract_inputs()
+    |> Enum.map(fn {_input, attributes, _children} ->
+      {"name", key} = List.keyfind(attributes, "name", 0) || {"name", nil}
+      {"value", value} = List.keyfind(attributes, "value", 0) || {"value", nil}
+
+      if key && value do
+        {key, value}
+      end
+    end)
+    |> Enum.reject(&is_nil/1)
   end
 
   defp proxy_pid(%{proxy: {_ref, _topic, pid}}), do: pid

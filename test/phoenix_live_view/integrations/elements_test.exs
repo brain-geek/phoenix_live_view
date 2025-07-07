@@ -607,6 +607,15 @@ defmodule Phoenix.LiveView.ElementsTest do
       assert conn.request_path == "/not_found"
       assert conn.params == %{"baz" => "bat"}
     end
+
+    test "includes the hidden key/value pairs in the payload", %{live: view, conn: conn} do
+      view |> element("#trigger-form-default") |> render_submit()
+
+      conn = view |> form("#trigger-form-hidden-values") |> follow_trigger_action(conn)
+      assert conn.method == "GET"
+      assert conn.request_path == "/elements"
+      assert conn.params == %{"key" => "not_visible"}
+    end
   end
 
   describe "submit_form" do
@@ -633,6 +642,42 @@ defmodule Phoenix.LiveView.ElementsTest do
       assert conn.method == "GET"
       assert conn.request_path == "/not_found"
       assert conn.query_string == "foo=bar"
+    end
+
+    test "includes the unspecified input data in the payload", %{live: view, conn: conn} do
+      conn = view |> form("#submit-form-value") |> submit_form(conn)
+
+      assert conn.method == "GET"
+      assert conn.request_path == "/elements"
+      assert conn.params == %{"key" => "visible_value", "foo" => "hidden_value"}
+
+      conn = view |> form("#submit-form-value", %{"third" => "value"}) |> submit_form(conn)
+
+      assert conn.method == "GET"
+      assert conn.request_path == "/elements"
+
+      assert conn.params == %{
+               "key" => "visible_value",
+               "foo" => "hidden_value",
+               "third" => "value"
+             }
+
+      conn = view |> form("#submit-form-value", %{"foo" => "override"}) |> submit_form(conn)
+
+      assert conn.method == "GET"
+      assert conn.request_path == "/elements"
+      assert conn.params == %{"key" => "visible_value", "foo" => "override"}
+    end
+
+    test "includes the unspecified input data in the payload when it's an indirect child", %{
+      live: view,
+      conn: conn
+    } do
+      conn = view |> form("#submit-form-nondirect-value") |> submit_form(conn)
+
+      assert conn.method == "GET"
+      assert conn.request_path == "/elements"
+      assert conn.params == %{"foo" => "nested_value"}
     end
 
     test "named form", %{live: view, conn: _conn} do
